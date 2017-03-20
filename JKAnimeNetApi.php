@@ -3,13 +3,13 @@
  * JKANIME.net API TO SEARCH AND STREAM ANIME
  * 
  * It uses their mobile API, some animes and/or episodes may not be available.
- * Due to some unknown problems fetching their video stream link, it uses jkanime.io (sources from cdn.jkanime.us) to stream videos and search animes.
+ * Due to some unknown problems fetching their video stream link, it uses jkanime.io (sources from cdn.jkanime.us) to stream videos and search for animes.
  * 
  * (C) 2017 Freddy González.
  * 
  * This code is private, you cannot copy, share or use this code without my previous aprovation.
  */
-class JKAnime{
+class JKAnimeNetApi{
 	protected $_PATH = 'http://jkanime.net/';
 	protected $_TIME;
 	protected $_FORMAT = false;
@@ -90,9 +90,9 @@ class JKAnime{
 	/**
 	 * GETS INFORMATION ABOUT AN ANIME
 	 * 
-	 * $API->getAniInfo('masamune-kun-no-revenge');
+	 * $API->info('masamune-kun-no-revenge');
 	 */
-	public function getAniInfo($anime_slug){
+	public function info($anime_slug){
 		$data = $this->getJSON('doc/ani/' . $anime_slug . '/#');
 		$data = json_decode($data);
 		$info = array();
@@ -114,9 +114,9 @@ class JKAnime{
 	/**
 	 * GETS EPISODE LIST FROM AN ANIME
 	 * 
-	 * $API->getEpisodes('1234');
+	 * $API->episodes('1234');
 	 */
-	public function getEpisodes($anime_id){
+	public function episodes($anime_id){
 		$data = $this->getJSON('doc/episodes/' . $anime_id . '/#');
 		$data = json_decode($data);
 		$episodes = array();
@@ -130,9 +130,9 @@ class JKAnime{
 	/**
 	 * GETS EPISODE SOURCE (THUMBNAIL, LANGUAGE, STREAM)
 	 * 
-	 * $API->getSource('masamune-kun-no-revenge', '1');
+	 * $API->source('masamune-kun-no-revenge', '1');
 	 */
-	public function getSource($anime_slug, $episode_number){
+	public function source($anime_slug, $episode_number){
 		$data = $this->getJSON('doc/source/' . $anime_slug . '/' . $episode_number . '/?a=');
 		$data = json_decode($data);
 		$episode = array();
