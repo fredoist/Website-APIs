@@ -83,7 +83,7 @@ class JKAnimeNetApi{
 		$animes = array();
 		foreach($result[2] as $i=>$anime){
 			// search previous results again on jkanime.net and returns anime information.
-			$animes[$i] = json_decode($this->getAniInfo($anime));
+			$animes[$i] = json_decode($this->info($anime));
 		}
 		return str_replace('\n', '', $this->encode($animes));
 	}
