@@ -1,16 +1,28 @@
 <?php
 /**
- * AN API TO SEARCH AND STREAM ANIME CONTENT
+ * JKANIME.net API TO SEARCH AND STREAM ANIME
  * 
- * Currently supported websites:
- * 	- jkanime.net
+ * It uses their mobile API, some animes and/or episodes may not be available.
+ * Due to some unknown problems fetching their video stream link, it uses jkanime.io (sources from cdn.jkanime.us) to stream videos and search animes.
+ * 
+ * (C) 2017 Freddy González.
+ * 
+ * This code is private, you cannot copy, share or use this code without my previous aprovation.
  */
-class AnimeApi{
+class JKAnime{
 	protected $_PATH = 'http://jkanime.net/';
 	protected $_TIME;
+	protected $_FORMAT = false;
 	
 	public function __construct(){
 		$this->_TIME = time();
+	}
+	/**
+	 * FORMAT JSON RESPONSE PRETTY PRINT
+	 */
+	public function format($value){
+		$this->_FORMAT = $value;
+		return $this;
 	}
 	public function getJSON($URI){
 		$_URI = $this->_PATH . $URI . $this->_TIME;
@@ -24,102 +36,117 @@ class AnimeApi{
 		curl_setopt($ch, CURLOPT_URL,$_URI);
 		$data = curl_exec($ch);
 		$data = json_decode($data);
-		$JSON = json_encode($data, JSON_UNESCAPED_SLASHES);
+		return $this->encode($data);
+	}
+	/**
+	 * ENCODES DATA IN JSON
+	 */
+	private function encode($data){
+		if($this->_FORMAT){
+			$JSON = json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+		}else{
+			$JSON = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+		}
 		return $JSON;
 	}
 	/**
-	 * OBTIENE LOS EPISODIOS MAS RECIENTES
+	 * GETS RECENT EPISODES
+	 * 
+	 * $API->recent();
 	 */
-	public function getFeed(){
+	public function recent(){
 		$data = $this->getJSON('doc/air/?rnd=');
 		$data = json_decode($data);
 		$feed = array();
 		foreach($data as $i=>$anime){
-			$feed[$i]['episode_id'] = $anime->id;
-			$feed[$i]['episode_title'] = $anime->t;
-			$feed[$i]['anime_id'] = $anime->a;
-			$feed[$i]['episode_number'] = $anime->n;
-			$feed[$i]['episode_preview'] = $anime->i;
-			$feed[$i]['anime_type'] = $anime->ty;
-			$feed[$i]['episode_thumbnail'] = $anime->tn;
-			$feed[$i]['anime_slug'] = $anime->sl;
-			$feed[$i]['episode_date'] = $anime->ts;
+			$feed[$i]['episode']['id'] = $anime->id;
+			$feed[$i]['episode']['title'] = $anime->t;
+			$feed[$i]['episode']['number'] = $anime->n;
+			$feed[$i]['episode']['preview'] = $anime->i;
+			$feed[$i]['episode']['thumbnail'] = $anime->tn;
+			$feed[$i]['episode']['date'] = $anime->ts;
+			$feed[$i]['anime']['id'] = $anime->a;
+			$feed[$i]['anime']['type'] = $anime->ty;
+			$feed[$i]['anime']['slug'] = $anime->sl;
 		}
-		$JSON = json_encode($feed, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-		return $JSON;
+		return $this->encode($feed);
 	}
 	/**
-	 * BUSCAR ANIMES
+	 * SEARCH FOR ANIMES
+	 * 
+	 * $API->search('masamune');
 	 */
 	public function search($query){
-		// busca animes en jkanime.io
+		// search keywords on jkanime.io
 		$data = file_get_contents('http://ww1.jkanime.io/search.html?keyword=' . $query);
 		preg_match_all('/(serie|ova)\/(.*?).html/', $data, $result);
 		$animes = array();
 		foreach($result[2] as $i=>$anime){
-			// obtiene resultados de jkanime.net
+			// search previous results again on jkanime.net and returns anime information.
 			$animes[$i] = json_decode($this->getAniInfo($anime));
 		}
-		$JSON = str_replace('\n', '', json_encode($animes, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
-		return $JSON;
+		return str_replace('\n', '', $this->encode($animes));
 	}
 	/**
-	 * OBTIENE INFORMACION SOBRE UN ANIME
+	 * GETS INFORMATION ABOUT AN ANIME
+	 * 
+	 * $API->getAniInfo('masamune-kun-no-revenge');
 	 */
 	public function getAniInfo($anime_slug){
 		$data = $this->getJSON('doc/ani/' . $anime_slug . '/#');
 		$data = json_decode($data);
 		$info = array();
-		$info['anime_id'] = $data->id;
-		$info['anime_title'] = $data->title;
-		$info['anime_slug'] = strtolower(str_replace(' ', '-', $data->title));
-		$info['anime_synopsis'] = $data->synopsis;
-		$info['anime_image'] = $data->image;
-		$info['anime_type'] = $data->type;
+		$info['id'] = $data->id;
+		$info['title'] = $data->title;
+		$info['slug'] = $anime_slug;
+		$info['synopsis'] = $data->synopsis;
+		$info['image'] = $data->image;
+		$info['type'] = $data->type;
 		// currently = En emision, finished = Finalizado
-		$info['anime_status'] = ($data->status == 'currently') ? 'En emisión' : 'Finalizado';
-		$info['anime_thumbnail'] = $data->thumbnail;
+		$info['status'] = ($data->status == 'currently') ? 'En emisión' : 'Finalizado';
+		$info['thumbnail'] = $data->thumbnail;
 		/**
-		 * AUN NO SE COMO SE USAN LOS GENEROS, DEBUELVEN ARRAY [36,12,34,..]
+		 * I STILL DON'T KNOW HOW TO USE THE GENRES, BUT IT RETURNS AN ARRAY LIKE THIS -> [36,12,34,..]
 		 */
 		//$info['anime_genres'] = $data->genre;
-		$JSON = json_encode($info, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-		return $JSON;
+		return $this->encode($info);
 	}
 	/**
-	 * OBTIENE LISTA DE EPISODIOS DE UN ANIME
+	 * GETS EPISODE LIST FROM AN ANIME
+	 * 
+	 * $API->getEpisodes('1234');
 	 */
 	public function getEpisodes($anime_id){
 		$data = $this->getJSON('doc/episodes/' . $anime_id . '/#');
 		$data = json_decode($data);
 		$episodes = array();
 		foreach($data as $i=>$episode){
-			$episodes[$i]['episode_id'] = $episode->id;
-			$episodes[$i]['episode_title'] = $episode->title;
-			$episodes[$i]['episode_number'] = $episode->number;
+			$episodes[$i]['id'] = $episode->id;
+			$episodes[$i]['title'] = $episode->title;
+			$episodes[$i]['number'] = $episode->number;
 		}
-		$JSON = json_encode($episodes, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-		return $JSON;
+		return $this->encode($episodes);
 	}
 	/**
-	 * OBTIENE LA FUENTE DE UN EPISODIO IMAGEN, IDIOMA, VIDEO..
+	 * GETS EPISODE SOURCE (THUMBNAIL, LANGUAGE, STREAM)
+	 * 
+	 * $API->getSource('masamune-kun-no-revenge', '1');
 	 */
 	public function getSource($anime_slug, $episode_number){
 		$data = $this->getJSON('doc/source/' . $anime_slug . '/' . $episode_number . '/?a=');
 		$data = json_decode($data);
 		$episode = array();
-		$episode['episode_image'] = $data->image;
-		$episode['episode_info']['previous'] = $data->pagination->before;
-		$episode['episode_info']['next'] = $data->pagination->after;
-		$episode['episode_info']['current'] = $data->pagination->current;
-		$episode['episode_label'] = $data->src[0]->label;
-		$episode['episode_language'] = $data->src[0]->language;
-		// obtiene el video de jkanime.us
-		$episode['episode_stream'] = 'http://cdn.jkanime.us/media/' . $anime_slug . '/' . $anime_slug . '-' . $episode_number . '.mp4';
-		$episode['episode_mslug'] = $data->mslug;
-		$episode['episode_programing'] = $data->programing;
-		$JSON = json_encode($episode, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
-		return $JSON;
+		$episode['image'] = $data->image;
+		$episode['info']['previous'] = $data->pagination->before;
+		$episode['info']['next'] = $data->pagination->after;
+		$episode['info']['current'] = $data->pagination->current;
+		$episode['label'] = $data->src[0]->label;
+		$episode['language'] = $data->src[0]->language;
+		// gets video url from cdn.jkanime.us
+		$episode['stream'] = 'http://cdn.jkanime.us/media/' . $anime_slug . '/' . $anime_slug . '-' . $episode_number . '.mp4';
+		$episode['mslug'] = $data->mslug;
+		$episode['programing'] = $data->programing;
+		return $this->encode($episode);
 	}
 	
 }
