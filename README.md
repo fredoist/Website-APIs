@@ -1,0 +1,1 @@
+# PLEASE GO TO THE [PROJECT'S WIKI](https://gitlab.com/maddenamy/APIs/wikis/home) FOR MORE INFORMATION.
