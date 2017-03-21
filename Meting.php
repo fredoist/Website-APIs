@@ -91,7 +91,7 @@ class Meting
         if ($this->_FORMAT&&isset($API['format'])) {
             $data=json_decode($data, 1);
             $data=$this->clean($data, $API['format']);
-            $data=json_encode($data);
+            $data=json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
         }
         return $data;
     }
@@ -819,7 +819,7 @@ class Meting
     {
         $data=json_decode($result, 1);
         $url=array(
-            'url' => str_replace('http:', 'https:', $data['data'][0]['url']),
+            'url' => str_replace('http:', 'https:', $data['data'][0]['url']), // remove SSL for insecure certificate
             'br'  => $data['data'][0]['br']/1000,
         );
         return json_encode($url);
