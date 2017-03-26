@@ -696,7 +696,7 @@ class Meting
     {
         switch ($this->_SITE) {
             case 'netease':
-                $url='https://p3.music.126.net/'.$this->netease_pickey($id).'/'.$id.'.jpg?param='.$size.'z'.$size.'&quality=100';
+                $url='http://p3.music.126.net/'.$this->netease_pickey($id).'/'.$id.'.jpg?param='.$size.'z'.$size.'&quality=100';
                 break;
             case 'tencent':
                 $url='https://y.gtimg.cn/music/photo_new/T002R'.$size.'x'.$size.'M000'.$id.'.jpg?max_age=2592000';
@@ -819,7 +819,7 @@ class Meting
     {
         $data=json_decode($result, 1);
         $url=array(
-            'url' => str_replace('http:', 'https:', $data['data'][0]['url']), // remove SSL for insecure certificate
+            'url' => str_replace('http:', 'http:', $data['data'][0]['url']),
             'br'  => $data['data'][0]['br']/1000,
         );
         return json_encode($url);
