@@ -24,17 +24,18 @@ class JKAnimeNetApi{
 		$this->_FORMAT = $value;
 		return $this;
 	}
-	public function getJSON($URI){
-		$_URI = $this->_PATH . $URI . $this->_TIME;
-		$agent= 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.0.3705; .NET CLR 1.1.4322)';
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_VERBOSE, true);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_USERAGENT, $agent);
-		curl_setopt($ch, CURLOPT_REFERER, 'http://jkanime.net/');
-		curl_setopt($ch, CURLOPT_URL,$_URI);
-		$data = curl_exec($ch);
+	public function getJSON($URI, $time = false){
+		$_URI = $this->_PATH . $URI;
+		if($time) $_URI .= $this->_TIME;
+		$agent= 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36';
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl, CURLOPT_VERBOSE, true);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_USERAGENT, $agent);
+		curl_setopt($curl, CURLOPT_REFERER, 'http://jkanime.net/');
+		curl_setopt($curl, CURLOPT_URL, $_URI);
+		$data = curl_exec($curl);
 		$data = json_decode($data);
 		return $this->encode($data);
 	}
@@ -55,7 +56,7 @@ class JKAnimeNetApi{
 	 * $API->recent();
 	 */
 	public function recent(){
-		$data = $this->getJSON('doc/air/?rnd=');
+		$data = $this->getJSON('doc/air/?rnd=', true);
 		$data = json_decode($data);
 		$feed = array();
 		foreach($data as $i=>$anime){
@@ -93,7 +94,7 @@ class JKAnimeNetApi{
 	 * $API->info('masamune-kun-no-revenge');
 	 */
 	public function info($anime_slug){
-		$data = $this->getJSON('doc/ani/' . $anime_slug . '/#');
+		$data = $this->getJSON('doc/ani/' . $anime_slug . '/');
 		$data = json_decode($data);
 		$info = array();
 		$info['id'] = $data->id;
@@ -117,7 +118,7 @@ class JKAnimeNetApi{
 	 * $API->episodes('1234');
 	 */
 	public function episodes($anime_id){
-		$data = $this->getJSON('doc/episodes/' . $anime_id . '/#');
+		$data = $this->getJSON('doc/episodes/' . $anime_id . '/');
 		$data = json_decode($data);
 		$episodes = array();
 		foreach($data as $i=>$episode){
@@ -133,7 +134,7 @@ class JKAnimeNetApi{
 	 * $API->source('masamune-kun-no-revenge', '1');
 	 */
 	public function source($anime_slug, $episode_number){
-		$data = $this->getJSON('doc/source/' . $anime_slug . '/' . $episode_number . '/?a=');
+		$data = $this->getJSON('doc/source/' . $anime_slug . '/' . $episode_number . '/?a=', true);
 		$data = json_decode($data);
 		$episode = array();
 		$episode['image'] = $data->image;
