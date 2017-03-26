@@ -39,4 +39,4 @@ API | Website | API class | Wiki | Category | Website Description
 --- | --- | --- | --- | --- | ---
 JKAnimeNetApi | [jkanime.net](http://jkanime.net) | [JKAnimeNetApi.php](api/JKAnimeNetApi.php) | [JKAnimeNetApi Wiki](wiki/JKAnimeNetApi.md) | VOD | JKAnime is a free spanish anime provider, it's the largest anime provider in spanish.
 Meting | various | [Meting.php](api/Meting.php) | [Meting Wiki](wiki/Meting.md) | Music | Search for music on different chinnese music providers
-datmusicApi | [datmusic.xyz](https://datmusic.xyz) | [datmusicApi.php](api/datmusicApi.php) | [datmusicApi Wiki](wiki/datmusic.md) | Music | Fetch music from vk.com without log in
+datmusicApi | [datmusic.xyz](https://datmusic.xyz) | [datmusicApi.php](api/datmusicApi.php) | [datmusicApi Wiki](wiki/datmusicApi.md) | Music | Fetch music from vk.com without log in
